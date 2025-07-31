@@ -11,6 +11,12 @@ pub struct Player;
 #[derive(Component)]
 pub struct PlayerCamera;
 
+// Have to refactor this to apply to the micro-gravity
+#[derive(Component)]
+pub struct PlayerInputs {
+    pub movement: Vec2,
+}
+
 #[derive(Debug, Component, DerefMut, Deref)]
 pub struct CameraSensitivity(Vec2);
 impl Default for CameraSensitivity {

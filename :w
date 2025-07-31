@@ -27,7 +27,6 @@ use bevy::{
         view::Visibility,
     },
     scene::ron::de,
-    time::Time,
     transform::components::Transform,
 };
 
@@ -46,8 +45,7 @@ pub fn player_setup(
         .spawn((
             Player, //Base Player
             RigidBody::Dynamic,
-            CameraSensitivity::default(),
-            // Big mesh for for face
+            Collider::capsule(3., 1.5),
             Transform::from_xyz(0.0, 5.0, 0.0), //World Position
             Mesh3d(meshes.add(Capsule3d::default().mesh().longitudes(10))),
             MeshMaterial3d(materials.add(Color::srgb(0.3, 0.4, 0.3))),
@@ -56,12 +54,12 @@ pub fn player_setup(
             parent.spawn((
                 // Camera children
                 PlayerCamera,
-                CameraSensitivity::default(),
                 Camera3d::default(),
                 Camera {
                     order: 1,
                     ..Default::default()
                 },
+                CameraSensitivity::default(),
                 Projection::from(PerspectiveProjection {
                     // 70 is a pretty vanilla FOV
                     fov: 70_f32.to_radians(), // I was a big idiot, didn't saw that this wasn't on
@@ -76,13 +74,11 @@ pub fn player_setup(
 
 // Thx sburris
 // Okay this has to be pretty refine
-pub fn move_player(
+pub fn get_player_inputs(
     mut commands: Commands,
-    time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player: Single<(&mut Transform), With<Player>>,
 ) {
-    let mut transform = player.into_inner();
     let mut velocity = Vec3::ZERO;
 
     // for handleling orientaiton
@@ -92,6 +88,8 @@ pub fn move_player(
     let forward = -Vec3::new(local_z.x, 0., local_z.z);
     let right = Vec3::new(local_z.z, 0., -local_z.x);
 
+    let mut transform = player.into_inner();
+
     // Needs a more abstract implementation
 
     // just for checking out the physics
@@ -99,26 +97,26 @@ pub fn move_player(
         val if keyboard_input.pressed(KeyCode::KeyW) => velocity += forward,
         val if keyboard_input.pressed(KeyCode::KeyS) => velocity -= forward,
         val if keyboard_input.pressed(KeyCode::KeyA) => velocity -= right,
-        val if keyboard_input.pressed(KeyCode::KeyD) => velocity += right,
+        val if keyboard_input.pressed(KeyCode::KeyD) => ve,
         _ => { // Do nothing in here}
         }
     }
-
-    velocity = velocity.normalize_or_zero();
-
-    transform.translation += velocity * time.delta_secs() * 2.0;
 }
 
-// just controlls the orientation, might change for the micro-gravity implementation
-pub fn move_player_orientation(
+// Get Player inputs
+pub fn move_player() {}
+
+// this implementation was taken from the bevy example page
+pub fn move_player_camera(
+    //for accelerating the camera rotation depending how you do it with the mouse
     accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
-    player_camera: Single<(&mut Transform, &CameraSensitivity), With<Player>>,
+    player: Single<(&mut Transform, &CameraSensitivity), With<PlayerCamera>>,
 ) {
-    let (mut transform, camera_sensitivity) = player_camera.into_inner();
+    let (mut transform, camera_sensitivity) = player.into_inner();
 
     let delta = accumulated_mouse_motion.delta;
 
-    // this part just controlls how the camera moves, but not the player
+    //TODO: if see neccesary, comment the things
     if delta != Vec2::ZERO {
         let delta_yaw = -delta.x * camera_sensitivity.x;
         let delta_pitch = -delta.y * camera_sensitivity.y;
@@ -132,33 +130,5 @@ pub fn move_player_orientation(
         let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
 
         transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
-    }
-}
-
-// controls all perspecive camera
-// this implementation was taken from the bevy example page
-pub fn move_player_camera(
-    //for accelerating the camera rotation depending how you do it with the mouse
-    accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
-    player_camera: Single<(&Transform, &CameraSensitivity), With<PlayerCamera>>,
-) {
-    let (mut transform, camera_sensitivity) = player_camera.into_inner();
-
-    let delta = accumulated_mouse_motion.delta;
-
-    // this part just controlls how the camera moves, but not the player
-    if delta != Vec2::ZERO {
-        let delta_yaw = -delta.x * camera_sensitivity.x;
-        let delta_pitch = -delta.y * camera_sensitivity.y;
-
-        let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
-        let yaw = yaw + delta_yaw;
-
-        // To not run into these issues, we clamp the pitch to a safe range.
-        const PITCH_LIMIT: f32 = FRAC_PI_2 as f32 - 0.01;
-
-        let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-
-        // not messing with transformation, cause it will affect the player movement
     }
 }
