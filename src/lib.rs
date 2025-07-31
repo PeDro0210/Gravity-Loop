@@ -1,6 +1,7 @@
 mod components;
 mod systems;
 
+use avian3d::PhysicsPlugins;
 use bevy::prelude::*;
 use systems::{basics::basics_systems, game_objects::game_objects_systems};
 
@@ -15,6 +16,7 @@ impl Plugin for MainAppPlugin {
             }),
             ..Default::default()
         }))
+        .add_plugins(PhysicsPlugins::default())
         .add_plugins(game_objects_systems)
         .add_plugins(basics_systems);
     }

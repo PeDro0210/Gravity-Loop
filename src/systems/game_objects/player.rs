@@ -27,7 +27,7 @@ use bevy::{
     transform::components::Transform,
 };
 
-use crate::components::base_components::player::{CameraSensitivity, Player};
+use crate::components::base_components::player::{CameraSensitivity, Player, PlayerCamera};
 
 // creating player "instance"
 pub fn player_setup(
@@ -38,26 +38,27 @@ pub fn player_setup(
     println!("Player Setup");
     commands
         .spawn((
-            Player,
+            Player, //Base Player
             RigidBody::Dynamic,
-            Collider::capsule(0.5, 1.5),
-            CameraSensitivity::default(),
-            Transform::from_xyz(0.0, 1.0, 0.0),
+            Collider::capsule(3., 1.5),
+            Transform::from_xyz(0.0, 5.0, 0.0), //World Position
             Mesh3d(meshes.add(Capsule3d::default().mesh().longitudes(10))),
             MeshMaterial3d(materials.add(Color::srgb(0.3, 0.4, 0.3))),
         ))
         .with_children(|parent| {
             parent.spawn((
-                // This mesh is just for reference where the camera at, I'll deleate it later
-                Mesh3d(meshes.add(Cuboid::new(2., 1., 2.))),
-                MeshMaterial3d(materials.add(Color::srgb(0.3, 0.4, 0.3))),
+                // Camera children
+                PlayerCamera,
                 Camera3d::default(),
                 Camera {
                     order: 1,
                     ..Default::default()
                 },
+                CameraSensitivity::default(),
                 Projection::from(PerspectiveProjection {
-                    fov: 90_f32.to_radians(),
+                    // 70 is a pretty vanilla FOV
+                    fov: 70_f32.to_radians(), // I was a big idiot, didn't saw that this wasn't on
+                    // radians
                     ..Default::default()
                 }),
             ));
@@ -68,7 +69,7 @@ pub fn player_setup(
 pub fn move_player_camera(
     //for accelerating the camera rotation depending how you do it with the mouse
     accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
-    player: Single<(&mut Transform, &CameraSensitivity), With<Player>>,
+    player: Single<(&mut Transform, &CameraSensitivity), With<PlayerCamera>>,
 ) {
     let (mut transform, camera_sensitivity) = player.into_inner();
 

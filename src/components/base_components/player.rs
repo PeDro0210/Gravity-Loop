@@ -8,6 +8,9 @@ use bevy::{
 #[derive(Component)]
 pub struct Player;
 
+#[derive(Component)]
+pub struct PlayerCamera;
+
 #[derive(Debug, Component, DerefMut, Deref)]
 pub struct CameraSensitivity(Vec2);
 impl Default for CameraSensitivity {
