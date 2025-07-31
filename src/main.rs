@@ -1,3 +1,6 @@
+use bevy::app::App;
+use gravity_loop::MainAppPlugin;
+
 fn main() {
-    println!("Hello, world!");
+    App::new().add_plugins(MainAppPlugin).run();
 }

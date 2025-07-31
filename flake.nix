@@ -52,7 +52,6 @@
           buildInputs = runtimeDeps;
 
           overrideMain = attrs: {
-            #TODO: add the asset stuff
             fixupPhase = ''
               wrapProgram $out/bin/${pname} \
                 --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath runtimeDeps} \
