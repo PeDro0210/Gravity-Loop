@@ -1,3 +1,5 @@
+use std::f32::consts::{FRAC_1_PI, PI};
+
 use avian3d::{
     math::FRAC_PI_2,
     prelude::{Collider, RigidBody},
@@ -11,7 +13,10 @@ use bevy::{
         system::{Commands, Res, ResMut, Single},
     },
     input::mouse::AccumulatedMouseMotion,
-    math::{EulerRot, Quat, Vec2, primitives::Capsule3d},
+    math::{
+        EulerRot, Quat, Vec2, Vec3,
+        primitives::{Capsule3d, Cuboid, Plane3d},
+    },
     pbr::{MeshMaterial3d, StandardMaterial},
     render::{
         camera::{Camera, PerspectiveProjection, Projection},
@@ -43,15 +48,19 @@ pub fn player_setup(
         ))
         .with_children(|parent| {
             parent.spawn((
-                //Camera3d::default(),
+                // This mesh is just for reference where the camera at, I'll deleate it later
+                Mesh3d(meshes.add(Cuboid::new(2., 1., 2.))),
+                MeshMaterial3d(materials.add(Color::srgb(0.3, 0.4, 0.3))),
+                Camera3d::default(),
                 Camera {
                     order: 1,
                     ..Default::default()
                 },
                 Projection::from(PerspectiveProjection {
-                    fov: 50.,
+                    fov: -100.,
                     ..Default::default()
                 }),
+                // Needs this rotation, cause of some reason the camera is rotated
             ));
         });
 }
@@ -69,7 +78,7 @@ pub fn move_player_camera(
     //TODO: if see neccesary, comment the things
     if delta != Vec2::ZERO {
         let delta_yaw = -delta.x * camera_sensitivity.x;
-        let delta_pitch = delta.y * camera_sensitivity.y;
+        let delta_pitch = -delta.y * camera_sensitivity.y;
 
         let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
         let yaw = yaw + delta_yaw;

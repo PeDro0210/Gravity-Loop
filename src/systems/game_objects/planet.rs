@@ -18,8 +18,8 @@ pub fn planets_setup(
 ) {
     // Basic plane
     commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(30.0, 30.0))),
-        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.4, 0.3))),
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(30., 30.))),
+        MeshMaterial3d(materials.add(Color::srgb(0.9, 0.4, 0.9))),
     ));
 
     // Light
@@ -28,8 +28,8 @@ pub fn planets_setup(
         Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
-    commands.spawn((
-        Camera3d::default(),
-        Transform::from_xyz(15.0, 5.0, 15.0).looking_at(Vec3::ZERO, Vec3::Y),
-    ));
+    //commands.spawn((
+    //    Camera3d::default(),
+    //    Transform::from_xyz(15.0, 5.0, 15.0).looking_at(Vec3::ZERO, Vec3::Y),
+    //));
 }
