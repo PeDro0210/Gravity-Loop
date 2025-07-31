@@ -28,6 +28,7 @@
           pkg-config
           makeWrapper
           clang
+          lld
           mold
         ];
 

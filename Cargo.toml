@@ -8,7 +8,7 @@ edition = "2024"
 opt-level = 3
 
 [dependencies]
-bevy = { version = "0.16", features = ["dynamic_linking"] }
+bevy = { version = "0.16" }
 avian3d = { version = "0.3", default-features = false, features = [
   "3d",
   "f64",
