@@ -57,10 +57,9 @@ pub fn player_setup(
                     ..Default::default()
                 },
                 Projection::from(PerspectiveProjection {
-                    fov: -100.,
+                    fov: 90_f32.to_radians(),
                     ..Default::default()
                 }),
-                // Needs this rotation, cause of some reason the camera is rotated
             ));
         });
 }
