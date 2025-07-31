@@ -1,2 +1,3 @@
-pub(crate) mod game_objects;
-pub(crate) mod hud;
+pub mod basics;
+pub mod game_objects;
+pub mod hud;

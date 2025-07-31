@@ -19,7 +19,7 @@ pub fn planets_setup(
     // Basic plane
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::default().mesh().size(30.0, 30.0))),
-        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
+        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.4, 0.3))),
     ));
 
     // Light
