@@ -5,7 +5,7 @@ use std::{
 
 use avian3d::{
     math::FRAC_PI_2,
-    prelude::{Collider, RigidBody},
+    prelude::{AngularVelocity, Collider, LinearVelocity, RigidBody},
 };
 use bevy::{
     asset::Assets,
@@ -17,7 +17,7 @@ use bevy::{
     },
     input::{ButtonInput, keyboard::KeyCode, mouse::AccumulatedMouseMotion},
     math::{
-        EulerRot, Quat, Vec2, Vec3,
+        DVec3, EulerRot, Quat, Vec2, Vec3,
         primitives::{Capsule3d, Cuboid, Plane3d},
     },
     pbr::{MeshMaterial3d, StandardMaterial},
@@ -31,8 +31,9 @@ use bevy::{
     transform::components::Transform,
 };
 
-use crate::components::base_components::player::{
-    CameraSensitivity, Player, PlayerCamera, PlayerInputs,
+use crate::components::{
+    base_components::player::{CameraSensitivity, Player, PlayerCamera},
+    resources::PlayerCarriedAcceleration,
 };
 
 // creating player "instance"
@@ -42,11 +43,17 @@ pub fn player_setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     println!("Player Setup");
+
+    // for the acceleration and having a single reference
+    commands.init_resource::<PlayerCarriedAcceleration>();
+
     commands
+        // the main is the physics related componenets
         .spawn((
             Player, //Base Player
             RigidBody::Dynamic,
             CameraSensitivity::default(),
+            Collider::cuboid(5., 10., 10.),
             // Big mesh for for face
             Transform::from_xyz(0.0, 5.0, 0.0), //World Position
             Mesh3d(meshes.add(Capsule3d::default().mesh().longitudes(10))),
@@ -79,11 +86,13 @@ pub fn player_setup(
 pub fn move_player(
     mut commands: Commands,
     time: Res<Time>,
+    mut acceleration_res: ResMut<PlayerCarriedAcceleration>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut player: Single<(&mut Transform), With<Player>>,
+    mut player: Single<(&mut Transform, &mut LinearVelocity), With<Player>>,
 ) {
-    let mut transform = player.into_inner();
-    let mut velocity = Vec3::ZERO;
+    let (mut transform, mut velocity) = player.into_inner();
+
+    let mut velocity = velocity.as_vec3();
 
     // for handleling orientaiton
     let local_z = transform.local_z();
@@ -94,19 +103,35 @@ pub fn move_player(
 
     // Needs a more abstract implementation
 
+    let mut acceleration = acceleration_res.into_inner();
+
+    println!("acceleraation {}", acceleration.0);
+
+    // TODO: refactor this for having multi key board input
+
     // just for checking out the physics
     match keyboard_input {
-        val if keyboard_input.pressed(KeyCode::KeyW) => velocity += forward,
-        val if keyboard_input.pressed(KeyCode::KeyS) => velocity -= forward,
-        val if keyboard_input.pressed(KeyCode::KeyA) => velocity -= right,
-        val if keyboard_input.pressed(KeyCode::KeyD) => velocity += right,
-        _ => { // Do nothing in here}
+        ref val if keyboard_input.pressed(KeyCode::KeyW) => velocity += forward * acceleration.0,
+        ref val if keyboard_input.pressed(KeyCode::KeyS) => velocity -= forward * acceleration.0,
+        ref val if keyboard_input.pressed(KeyCode::KeyA) => velocity -= right * acceleration.0,
+        ref val if keyboard_input.pressed(KeyCode::KeyD) => velocity += right * acceleration.0,
+        _ => {
+            // in the case not an input is being pressed, the body starts to decelrate
+            if (acceleration.0 < 1.0) {
+                acceleration.0 = 1.;
+            } else {
+                acceleration.0 -= 0.5;
+            }
         }
     }
 
-    velocity = velocity.normalize_or_zero();
+    if keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyD, KeyCode::KeyS]) {
+        acceleration.0 += 0.5;
+        // some acceleration factor, for having cool effect
+        velocity = velocity.normalize_or_zero() * acceleration.0;
 
-    transform.translation += velocity * time.delta_secs() * 2.0;
+        transform.translation += velocity * time.delta_secs() * 2.0;
+    }
 }
 
 // just controlls the orientation, might change for the micro-gravity implementation

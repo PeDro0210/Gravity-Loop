@@ -5,17 +5,13 @@ use bevy::{
 };
 
 // Base componenet just for referencing ECS
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Player;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct PlayerCamera;
 
 // Have to refactor this to apply to the micro-gravity
-#[derive(Component)]
-pub struct PlayerInputs {
-    pub movement: Vec2,
-}
 
 #[derive(Debug, Component, DerefMut, Deref)]
 pub struct CameraSensitivity(Vec2);

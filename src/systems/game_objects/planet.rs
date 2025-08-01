@@ -25,7 +25,7 @@ pub fn planets_setup(
     commands.spawn((
         Collider::cuboid(30., 0., 30.),
         RigidBody::Static,
-        Mesh3d(meshes.add(Cuboid::new(30., 0., 30.))),
+        Mesh3d(meshes.add(Cuboid::new(30., 5., 30.))),
         MeshMaterial3d(materials.add(Color::srgb(0.9, 0.4, 0.9))),
     ));
 
@@ -35,7 +35,7 @@ pub fn planets_setup(
         Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
-    // Debug Camera
+    //Debug Camera
     //commands.spawn((
     //    Camera3d::default(),
     //    Transform::from_xyz(15.0, 5.0, 15.0).looking_at(Vec3::ZERO, Vec3::Y),
