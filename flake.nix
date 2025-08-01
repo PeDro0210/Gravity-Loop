@@ -37,6 +37,9 @@
           alsa-lib
           udev
           vulkan-loader
+          rust-analyzer
+          cargo
+          rustc
           wayland
         ] ++ (with xorg; [
           libXcursor

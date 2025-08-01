@@ -15,24 +15,42 @@ use bevy::{
     transform::components::Transform,
 };
 
+use crate::components::base_components::planet::Planet;
+
 pub fn planets_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    // May Planets are a bit out of scoope, but loop planets sound cool (like a donut plataform)
+
     // Mostly of this stuff is just for debugging and trying out the character movement
     // Basic plane
     commands.spawn((
+        Planet,
         Collider::cuboid(30., 0., 30.),
         RigidBody::Static,
         Mesh3d(meshes.add(Cuboid::new(30., 5., 30.))),
         MeshMaterial3d(materials.add(Color::srgb(0.9, 0.4, 0.9))),
+        Transform::from_xyz(10., 0., 10.),
     ));
 
-    // Light
     commands.spawn((
-        DirectionalLight::default(),
-        Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
+        Planet,
+        Collider::cuboid(30., 0., 30.),
+        RigidBody::Static,
+        Mesh3d(meshes.add(Cuboid::new(30., 5., 30.))),
+        MeshMaterial3d(materials.add(Color::srgb(0.9, 0.4, 0.9))),
+        Transform::from_xyz(30., 0., 40.),
+    ));
+
+    commands.spawn((
+        Planet,
+        Collider::cuboid(30., 0., 30.),
+        RigidBody::Static,
+        Mesh3d(meshes.add(Cuboid::new(30., 5., 30.))),
+        MeshMaterial3d(materials.add(Color::srgb(0.9, 0.4, 0.9))),
+        Transform::from_xyz(50., 0., 10.),
     ));
 
     //Debug Camera

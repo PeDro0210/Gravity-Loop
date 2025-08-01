@@ -5,13 +5,18 @@ use std::{
 
 use avian3d::{
     math::FRAC_PI_2,
-    prelude::{AngularVelocity, Collider, LinearVelocity, RigidBody},
+    prelude::{
+        AngularVelocity, Collider, CollisionEnded, CollisionEventsEnabled, CollisionStarted,
+        LinearVelocity, LockedAxes, RigidBody,
+    },
 };
 use bevy::{
     asset::Assets,
     color::Color,
     core_pipeline::core_3d::Camera3d,
     ecs::{
+        event::{Event, EventReader},
+        observer::TriggerTargets,
         query::With,
         system::{Commands, Query, Res, ResMut, Single},
     },
@@ -27,12 +32,16 @@ use bevy::{
         view::Visibility,
     },
     scene::ron::de,
+    state::{commands, state::NextState},
     time::Time,
     transform::components::Transform,
 };
 
 use crate::components::{
-    base_components::player::{CameraSensitivity, Player, PlayerCamera},
+    base_components::{
+        planet::Planet,
+        player::{CameraSensitivity, Player, PlayerCamera},
+    },
     resources::PlayerCarriedAcceleration,
 };
 
@@ -53,9 +62,11 @@ pub fn player_setup(
             Player, //Base Player
             RigidBody::Dynamic,
             CameraSensitivity::default(),
-            Collider::cuboid(5., 10., 10.),
-            // Big mesh for for face
-            Transform::from_xyz(0.0, 5.0, 0.0), //World Position
+            CollisionEventsEnabled,
+            Collider::cuboid(5., 6., 10.),
+            LockedAxes::ROTATION_LOCKED,
+            // Rembear this will be random and depending on which planet the player is
+            Transform::from_xyz(0.0, 5.0, 0.0), //World Position (like the player)
             Mesh3d(meshes.add(Capsule3d::default().mesh().longitudes(10))),
             MeshMaterial3d(materials.add(Color::srgb(0.3, 0.4, 0.3))),
         ))
@@ -70,8 +81,8 @@ pub fn player_setup(
                     ..Default::default()
                 },
                 Projection::from(PerspectiveProjection {
-                    // 70 is a pretty vanilla FOV
-                    fov: 70_f32.to_radians(), // I was a big idiot, didn't saw that this wasn't on
+                    // 50 is a pretty vanilla FOV
+                    fov: 50_f32.to_radians(), // I was a big idiot, didn't saw that this wasn't on
                     // radians
                     ..Default::default()
                 }),
@@ -81,7 +92,24 @@ pub fn player_setup(
 
 // First I'll implement it without the micro-gravity in mine, then I'll do it
 
-// Thx sburris
+pub fn check_if_player_with_floor(
+    mut commands: Commands,
+    mut acceleration_res: ResMut<PlayerCarriedAcceleration>,
+    mut collision_reader: EventReader<CollisionStarted>,
+    mut planets: Query<&Planet>,
+) {
+    for CollisionStarted(ent, ent2) in collision_reader.read() {
+        // it will only run if the collision was with a planet
+        for planet in &mut planets {
+            // decreases acceleration the body
+            acceleration_res.0 += 0.10;
+            break;
+        }
+    }
+}
+
+// The movement will just affect the transformation, not the acceleration
+// Thx @sburris
 // Okay this has to be pretty refine
 pub fn move_player(
     mut commands: Commands,
@@ -120,17 +148,17 @@ pub fn move_player(
             if (acceleration.0 < 1.0) {
                 acceleration.0 = 1.;
             } else {
-                acceleration.0 -= 0.5;
+                acceleration.0 -= 0.05;
             }
         }
     }
 
     if keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyD, KeyCode::KeyS]) {
-        acceleration.0 += 0.5;
+        acceleration.0 += 0.05;
         // some acceleration factor, for having cool effect
         velocity = velocity.normalize_or_zero() * acceleration.0;
 
-        transform.translation += velocity * time.delta_secs() * 2.0;
+        transform.translation += velocity * time.delta_secs();
     }
 }
 
